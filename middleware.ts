@@ -1,6 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/middleware";
 
+//constante con la lista de rutas a las que se requiere la autenticación del ususario
+const routes = [
+  '/notes',
+  '/password',
+  '/products2',
+];
 export async function middleware(request: NextRequest) {
   try {
     // This `try/catch` block is only here for the interactive tutorial.
@@ -9,7 +15,26 @@ export async function middleware(request: NextRequest) {
 
     // Refresh session if expired - required for Server Components
     // https://supabase.com/docs/guides/auth/auth-helpers/nextjs#managing-session-with-middleware
-    await supabase.auth.getSession();
+    const{data: {session}} = await supabase.auth.getSession();
+
+    console.log(request.nextUrl);
+    //sino esta autenticado y la rurta es restringida,
+    //redireccionar al login
+    if(!session && routes.includes(request.nextUrl.pathname)){
+      console.log("REDIRECCION");
+
+      //reescribir la petición
+      //return NextResponse.rewrite(new URL('/login', request.url))
+          
+      //si el rol del usuario no es admin
+      //if(session?.user?.role !== '')
+
+      //redireccionar a otra ruta:/login
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+
+    }
 
     return response;
   } catch (e) {
